@@ -1,0 +1,297 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id               Int      @id @default(autoincrement())
+    firstName        String
+    lastName         String
+    email            String   @unique
+    phone            String   @unique
+    designation      String?
+    ProfilePicture   String?
+    bio              String?
+    country          String?
+    city             String?
+    state            String?
+    postalCode       String?
+    taxId            String?
+    password         String
+    facebook         String?
+    xcom             String?
+    linkedin         String?
+    instagram        String?
+    role             Role     @default(STUDENT)
+    status           Status   @default(ACTIVE)
+    organisationId   Int?
+    organisationName String?
+    createdBy        Int?
+    updatedBy        Int?
+    createdAt        DateTime @default(now())
+    updatedAt        DateTime @updatedAt
+
+    // Relations
+    reviews      Review[]
+    courseUsers  CourseUser[]
+    demoSessions DemoSession[]
+
+    @@map("Users")
+}
+
+model Organisation {
+    id                Int      @id @default(autoincrement())
+    name              String?
+    organisationName  String?
+    email             String   @unique
+    mobile            String   @unique
+    password          String
+    isActive          Boolean  @default(true)
+    OrganisationImage String?
+    createdAt         DateTime @default(now())
+    updatedAt         DateTime @updatedAt
+
+    @@map("Organisations")
+}
+
+model Course {
+    id              Int      @id @default(autoincrement())
+    title           String
+    subtitle        String
+    description     String?
+    language        String?
+    level           Level?
+    category        String?
+    CourseImage     String?
+    aim             String?
+    learningOutcome String?
+    status          Status   @default(ACTIVE)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+
+    // Relations
+    sections     Section[]
+    courseUsers  CourseUser[]
+    reviews      Review[]
+    courseTopics CourseTopic[]
+
+    @@map("Courses")
+}
+
+model Project {
+    id          Int      @id @default(autoincrement())
+    title       String?
+    description String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    @@map("Projects")
+}
+
+model Review {
+    id         Int      @id @default(autoincrement())
+    userId     Int
+    courseId   Int?
+    rating     Int
+    comment    String
+    isApproved Boolean  @default(false)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    // Relations
+    user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    course Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+    @@map("Reviews")
+}
+
+model CourseUser {
+    id        Int              @id @default(autoincrement())
+    courseId  Int
+    userId    Int
+    status    CourseUserStatus @default(ACTIVE)
+    startDate DateTime?
+    endDate   DateTime?
+    Budget    Float?
+    createdAt DateTime         @default(now())
+    updatedAt DateTime         @updatedAt
+
+    // Relations
+    course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("CourseUsers")
+}
+
+model Section {
+    id        Int      @id @default(autoincrement())
+    title     String
+    courseId  Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relations
+    course   Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+    lectures Lecture[]
+
+    @@map("Sections")
+}
+
+model Lecture {
+    id         Int      @id @default(autoincrement())
+    title      String
+    contentUrl String?
+    sectionId  Int
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    // Relations
+    section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+    @@map("Lectures")
+}
+
+model Team {
+    id        Int      @id @default(autoincrement())
+    name      String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relations
+    teamUsers TeamUser[]
+
+    @@map("Teams")
+}
+
+model TeamUser {
+    id        Int      @id @default(autoincrement())
+    teamId    Int
+    userId    Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    Team      Team     @relation(fields: [teamId], references: [id])
+
+    @@map("TeamUsers")
+}
+
+model Package {
+    id           Int      @id @default(autoincrement())
+    packageName  String?
+    packagePrice Decimal?
+    description  String?
+    features     Json?
+    maxCourses   Int?
+    maxUsers     Int?
+    status       Boolean  @default(true)
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    @@map("Packages")
+}
+
+model DemoSession {
+    id            Int        @id @default(autoincrement())
+    userId        Int?
+    fullName      String
+    email         String
+    phoneNumber   String
+    preferredDate DateTime   @db.Date
+    preferredTime String
+    message       String?
+    status        DemoStatus @default(PENDING)
+    createdAt     DateTime   @default(now()) @map("created_at")
+    updatedAt     DateTime   @updatedAt @map("updated_at")
+
+    // Relations
+    user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+    @@map("demo_sessions")
+}
+
+model ContactUs {
+    id        Int           @id @default(autoincrement())
+    name      String
+    email     String
+    phone     String
+    type      ContactType
+    message   String
+    status    ContactStatus @default(NEW)
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @updatedAt
+
+    @@map("ContactUs")
+}
+
+model FAQ {
+    id        Int      @id @default(autoincrement())
+    question  String   @db.VarChar(500)
+    answer    String
+    isActive  Boolean  @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("FAQs")
+}
+
+model CourseTopic {
+    id          Int      @id @default(autoincrement())
+    courseId    Int
+    title       String?
+    description String?
+    url         String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    // Relations
+    course Course @relation(fields: [courseId], references: [id])
+
+    @@map("CourseTopics")
+}
+
+// Enums
+enum Role {
+    ADMIN
+    STUDENT
+    ORGANISATION
+}
+
+enum Status {
+    ACTIVE
+    INACTIVE
+}
+
+enum Level {
+    BEGINNER
+    INTERMEDIATE
+    ADVANCED
+}
+
+enum CourseUserStatus {
+    ACTIVE
+    INACTIVE
+}
+
+enum DemoStatus {
+    PENDING
+    CONFIRMED
+    CANCELLED
+    COMPLETED
+}
+
+enum ContactType {
+    INDIVIDUAL
+    ORGANIZATION
+}
+
+enum ContactStatus {
+    NEW
+    REVIEWED
+    RESOLVED
+}
